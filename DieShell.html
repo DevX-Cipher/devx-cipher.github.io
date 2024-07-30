@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exploring DieShell: A Custom Context Menu Extension for Windows</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Exploring DieShell: A Custom Context Menu Extension for Windows</h1>
+    </header>
+    <nav>
+        <a href="index.html">Home</a>
+    </nav>
+    <main>
+        <section>
+            <h2>Introduction</h2>
+            <p>DieShell is a Windows Explorer context menu extension implemented in C++ as a DLL. It provides a custom "Die" command that can be added to the context menu for selected files. This post explores the key components of the DieShell code and how you can use and extend it.</p>
+        </section>
+
+        <section>
+            <h2>Key Components of DieShell</h2>
+
+            <h3>1. DLL Entry Point</h3>
+            <pre><code>BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
+    switch (ul_reason_for_call) {
+    case DLL_PROCESS_ATTACH:
+        g_hModule = hModule;
+        break;
+    case DLL_THREAD_ATTACH:
+    case DLL_THREAD_DETACH:
+    case DLL_PROCESS_DETACH:
+        break;
+    }
+    return TRUE;
+}
+</code></pre>
+            <p>The <code>DllMain</code> function initializes the global module handle when the DLL is loaded. This is a standard entry point for DLLs.</p>
+
+            <h3>2. Context Menu Command</h3>
+            <pre><code>class DieCommand : public RuntimeClass<RuntimeClassFlags<ClassicCom>, IExplorerCommand, IObjectWithSite> {
+public:
+    IFACEMETHODIMP GetTitle(_In_opt_ IShellItemArray* items, _Outptr_result_nullonfailure_ PWSTR* name) {
+        *name = nullptr;
+        auto title = wil::make_cotaskmem_string_nothrow(L"Die");
+        RETURN_IF_NULL_ALLOC(title);
+        *name = title.release();
+        return S_OK;
+    }
+};
+</code></pre>
+            <p>The <code>GetTitle</code> method provides the title "Die" for the context menu item. This method is crucial as it defines what the user will see in the context menu.</p>
+
+            <h3>3. Retrieving the Icon</h3>
+            <pre><code>IFACEMETHODIMP GetIcon(_In_opt_ IShellItemArray* items, _Outptr_result_nullonfailure_ PWSTR* iconPath) {
+    *iconPath = nullptr;
+    if (items) {
+        PWSTR itemPath = nullptr;
+        RETURN_IF_FAILED(items->GetItemAt(0, &item));
+        RETURN_IF_FAILED(item->GetDisplayName(SIGDN_FILESYSPATH, &itemPath));
+        wil::unique_cotaskmem_string itemPathCleanup(itemPath);
+
+        WCHAR modulePath[MAX_PATH];
+        if (GetModuleFileNameW(g_hModule, modulePath, ARRAYSIZE(modulePath))) {
+            PathRemoveFileSpecW(modulePath);
+            StringCchCatW(modulePath, ARRAYSIZE(modulePath), L"\\Die.exe");
+
+            auto iconPathStr = wil::make_cotaskmem_string_nothrow(modulePath);
+            if (iconPathStr) {
+                *iconPath = iconPathStr.release();
+            }
+        }
+    }
+    return *iconPath ? S_OK : E_FAIL;
+}
+</code></pre>
+            <p>The <code>GetIcon</code> method sets the icon for the context menu item by constructing the path to "Die.exe". This provides a visual representation in the context menu.</p>
+
+            <h3>4. Handling Command Execution</h3>
+            <pre><code>IFACEMETHODIMP Invoke(_In_opt_ IShellItemArray* selection, _In_opt_ IBindCtx*) noexcept try {
+    if (!selection) return E_INVALIDARG;
+
+    DWORD count;
+    RETURN_IF_FAILED(selection->GetCount(&count);
+    if (count == 0) return S_OK;
+
+    ComPtr<IShellItem> item;
+    RETURN_IF_FAILED(selection->GetItemAt(0, &item));
+
+    PWSTR filePath;
+    RETURN_IF_FAILED(item->GetDisplayName(SIGDN_FILESYSPATH, &filePath));
+    wil::unique_cotaskmem_string filePathCleanup(filePath);
+
+    std::wstring dieExePath = std::wstring(dllDirectory) + L"\\Die.exe";
+
+    if (GetFileAttributes(dieExePath.c_str()) == INVALID_FILE_ATTRIBUTES) {
+        MessageBox(nullptr, L"Die.exe not found", L"Error", MB_OK | MB_ICONERROR);
+        return E_FAIL;
+    }
+
+    std::wstring commandLineArgs = L"\"" + std::wstring(filePath) + L"\"";
+    if (!ShellExecute(nullptr, L"open", dieExePath.c_str(), commandLineArgs.c_str(), nullptr, SW_SHOWNORMAL)) {
+        MessageBox(nullptr, L"Failed to execute Die.exe", L"Error", MB_OK | MB_ICONERROR);
+        return E_FAIL;
+    }
+
+    return S_OK;
+}
+CATCH_RETURN();
+</code></pre>
+            <p>The <code>Invoke</code> method is triggered when the "Die" command is selected. It processes the selected file and launches "Die.exe" with the file path as an argument.</p>
+
+        </section>
+        <section>
+            <h2>Conclusion</h2>
+            <p>DieShell showcases how to create a custom context menu extension for Windows using C++. By understanding the code structure and methods used, developers can adapt this example to create their own context menu extensions and integrate custom functionality into the Windows Explorer shell.</p>
+        </section>
+    </main>
+    <footer>
+        &copy; 2024 Modz2014. All rights reserved.
+    </footer>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XNB Exporter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>XNB Exporter</h1>
+    </header>
+    <nav>
+        <a href="index.html">Home</a>
+    </nav>
+    <main>
+        <section>
+            <h2>Introduction</h2>
+            <p>In the world of game development with Microsoft XNA, managing and exporting game assets like textures, fonts, models, and animations can be quite a task. To streamline this process, we’ve created a custom XNB exporter that simplifies exporting these assets into a more manageable format. In this post, we will explore the core components of this exporter and how it can be used to handle various types of content.</p>
+        </section>
+
+        <section>
+            <h2>Key Features of the XNB Exporter</h2>
+
+            <h3>1. Initialization and Setup</h3>
+            <pre><code>public Exporter(string[] files, PictureBox pictureBox, string outPath = "")
+{
+    this.files = files;
+    this.pictureBox = pictureBox;
+    this.outPath = outPath;
+    InitializeContentManager();
+}
+
+public void InitializeContentManager()
+{
+    var services = new GameServiceContainer();
+    var graphicsDeviceService = GraphicsDeviceService.AddRef(IntPtr.Zero, 800, 600);
+    services.AddService<IGraphicsDeviceService>(graphicsDeviceService);
+
+    this.graphicsDevice = graphicsDeviceService.GraphicsDevice;
+    string contentRootDirectory = Path.Combine(Application.StartupPath, "content");
+    if (!Directory.Exists(contentRootDirectory))
+    {
+        Directory.CreateDirectory(contentRootDirectory);
+    }
+    contentManager = new ContentManager(services, contentRootDirectory);
+}
+</code></pre>
+            <p>The <code>InitializeContentManager</code> method sets up the <code>ContentManager</code> and <code>GraphicsDevice</code>, which are essential for handling XNA content.</p>
+
+            <h3>2. Loading XNB Files</h3>
+            <pre><code>public List&lt;XnbItem&gt; Load()
+{
+    List&lt;XnbItem&gt; items = new List&lt;XnbItem&gt;();
+
+    foreach (var file in files)
+    {
+        try
+        {
+            string relativePath = Path.GetRelativePath(ContentRootDirectory, file);
+            string itemName = Path.ChangeExtension(relativePath, null);
+            items.Add(new XnbItem { Name = itemName, Path = file });
+            Debug.LogMessage($"Added item: {itemName}");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogException($"Error processing file '{file}': {ex.Message}");
+        }
+    }
+
+    OnCompleted?.Invoke();
+    return items;
+}
+</code></pre>
+            <p>The <code>Load</code> method processes the given file paths, adds them to a list of <code>XnbItem</code>, and handles potential exceptions during the loading process.</p>
+
+            <h3>3. Displaying Assets</h3>
+
+            <h4>Displaying Textures</h4>
+            <pre><code>public void DisplayImage(Texture2D texture)
+{
+    try
+    {
+        texture = ConvertToSupportedFormat(texture);
+        Microsoft.Xna.Framework.Color[] textureData = new Microsoft.Xna.Framework.Color[texture.Width * texture.Height];
+        texture.GetData(0, null, textureData, 0, texture.Width * texture.Height);
+
+        using (var stream = new MemoryStream())
+        {
+            texture.SaveAsPng(stream, texture.Width, texture.Height);
+            stream.Seek(0, SeekOrigin.Begin);
+            pictureBox.Image = System.Drawing.Image.FromStream(stream);
+        }
+    }
+    catch (Exception ex)
+    {
+        Debug.LogException(ex.Message);
+    }
+}
+</code></pre>
+            <p>The <code>DisplayImage</code> method converts the texture to a supported format and displays it in a <code>PictureBox</code>.</p>
+
+            <h4>Displaying Models</h4>
+            <pre><code>public void DisplaySkinnedModel(Model model, string modelName)
+{
+    if (graphicsDevice == null) return;
+
+    try
+    {
+        graphicsDevice.BlendState = BlendState.Opaque;
+        graphicsDevice.DepthStencilState = DepthStencilState.Default;
+
+        foreach (ModelMesh mesh in model.Meshes)
+        {
+            foreach (ModelMeshPart part in mesh.MeshParts)
+            {
+                mesh.Draw();
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        Debug.LogException($"Failed to display skinned model '{modelName}': {ex.Message}");
+    }
+}
+</code></pre>
+            <p>The <code>DisplaySkinnedModel</code> method is used to render and display a 3D model.</p>
+
+            <h4>Displaying Fonts</h4>
+            <pre><code>public void DisplayFontAtlas(SpriteFont font, string fileName)
+{
+    using (var stream = new MemoryStream())
+    {
+        font.Texture.SaveAsPng(stream, font.Texture.Width, font.Texture.Height);
+        stream.Seek(0, SeekOrigin.Begin);
+        pictureBox.Image = System.Drawing.Image.FromStream(stream);
+    }
+}
+</code></pre>
+            <p>The <code>DisplayFontAtlas</code> method displays the texture atlas for a <code>SpriteFont</code>.</p>
+
+            <h3>4. Handling Animations</h3>
+            <pre><code>public void ApplyAnimation(AnimationClip animation)
+{
+    if (CurrentModel == null || animation == null || animation.FrameCount == 0) return;
+
+    for (int i = 0; i &lt; CurrentModel.Bones.Count; i++)
+    {
+        Matrix transform = animation.GetTransform(i, CurrentFrame);
+        CurrentModel.Bones[i].Transform = transform;
+    }
+
+    CurrentFrame = (CurrentFrame + 1) % animation.FrameCount;
+}
+</code></pre>
+            <p>The <code>ApplyAnimation</code> method applies animation transforms to the currently loaded model.</p>
+
+            <h3>5. Converting Texture Formats</h3>
+            <pre><code>public Texture2D ConvertToSupportedFormat(Texture2D texture)
+{
+    if (texture.Format == SurfaceFormat.Dxt1 || texture.Format == SurfaceFormat.Dxt3 || texture.Format == SurfaceFormat.Dxt5)
+    {
+        var data = new Microsoft.Xna.Framework.Color[texture.Width * texture.Height];
+        texture.GetData(data);
+        var convertedTexture = new Texture2D(texture.GraphicsDevice, texture.Width, texture.Height, false, SurfaceFormat.Color);
+        convertedTexture.SetData(data);
+        return convertedTexture;
+    }
+
+    return texture;
+}
+</code></pre>
+            <p>The <code>ConvertToSupportedFormat</code> method ensures that textures are converted to a supported format if they are in a compressed format like DXT.</p>
+
+            <h2>Conclusion</h2>
+            <p>The custom XNB exporter provides a robust solution for managing and exporting XNA assets. With functionalities for loading, displaying, and converting various asset types, it streamlines the process of handling game content. Whether you’re working with textures, models, or animations, this exporter can be a valuable tool in your game development toolkit.</p>
+            <p>Feel free to customize and extend this exporter to better fit your needs. Happy exporting!</p>
+        </section>
+    </main>
+    <footer>
+        &copy; 2024 Modz2014. All rights reserved.
+	</footer>
+</body>
+</html>
