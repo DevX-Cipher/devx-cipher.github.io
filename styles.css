@@ -46,12 +46,24 @@ h2 {
     color: #444;
 }
 
+/* Hyperlink styles */
+a {
+    color: #2358C2; /* Light blue color similar to Google's */
+    text-decoration: none; /* Remove the underline from the hyperlinks */
+}
+
+a:hover {
+    text-decoration: underline; /* Underline the hyperlinks on hover for better visibility */
+}
+
 pre {
     background-color: #f8f8f8;
     border: 1px solid #ddd;
     padding: 10px;
     border-radius: 4px;
     overflow-x: auto;
+	 white-space: pre-wrap; /* This will wrap the text */
+    word-wrap: break-word; /* This will break long words */
 }
 
 footer {
@@ -98,4 +110,70 @@ footer {
     footer {
         background-color: #1e1e1e;
     }
+    a {
+        color: #; /* Light blue color for dark mode as well */
+    }
+
+   /* Code block styles for dark mode */
+    pre .keyword { color: #197fd4; }
+    pre .string { color: #CE9178; }
+    pre .function { color: #fff486; }
+    pre .comment { color: #6A9955; }
+    pre .statement { color: #ef92f0; }
+    pre .type { color: #3eecac; }
+    pre .define { color: #b08ce6; }
+    pre .class { color: #aaff8e; }
+    pre .variable { color: #00ecff; }
+
+}
+
+/* Mobile styles */
+@media (max-width: 600px) {
+    body {
+		background-color: #121212;
+        color: #e0e0e0;
+        font-size: 14px;
+    }
+    header {
+		background-color: #1e1e1e;
+        color: #e0e0e0;
+        padding: 0.5em 0;
+    }
+	nav {
+        background-color: #2e2e2e;
+    }
+    nav a {
+		color: #e0e0e0;
+        margin: 0 10px;
+        padding: 10px 12px;		
+    }
+	nav a:hover {
+        text-decoration: underline;
+    }
+    main {
+		background-color: #1e1e1e;
+        margin: 10px;
+        padding: 15px;
+    }
+    footer {
+		background-color: #1e1e1e;
+        padding: 10px;
+    }
+    pre {
+		background-color: #2e2e2e;
+        padding: 8px;
+        font-size: 12px;
+    }
+
+
+   /* Code block styles for dark mode */
+    pre .keyword { color: #197fd4; }
+    pre .string { color: #CE9178; }
+    pre .function { color: #fff486; }
+    pre .comment { color: #6A9955; }
+    pre .statement { color: #ef92f0; }
+    pre .type { color: #3eecac; }
+    pre .define { color: #b08ce6; }
+    pre .class { color: #aaff8e; }
+    pre .variable { color: #00ecff; }
 }

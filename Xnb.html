@@ -9,10 +9,11 @@
 </head>
 <body>
     <header>
-        <h1>XNB Exporter</h1>
+        <h1>Xnb Exporter</h1>
     </header>
     <nav>
         <a href="index.html">Home</a>
+        <a href="DieShell.html">DieShell Blog</a>
     </nav>
     <main>
         <section>
@@ -24,154 +25,163 @@
             <h2>Key Features of the XNB Exporter</h2>
 
             <h3>1. Initialization and Setup</h3>
-            <pre><code>public Exporter(string[] files, PictureBox pictureBox, string outPath = "")
+            <pre><code><span class="keyword">public</span> <span class="type">Exporter</span>(<span class="keyword">string</span>[] <span class="variable">files</span>, <span class="type">PictureBox</span> <span class="variable">pictureBox</span>, <span class="keyword">string</span> <span class="variable">outPath</span> = <span class="string">""</span>)
 {
-    this.files = files;
-    this.pictureBox = pictureBox;
-    this.outPath = outPath;
-    InitializeContentManager();
+    <span class="keyword">this</span>.files = <span class="variable">files</span>;
+    <span class="keyword">this</span>.pictureBox = <span class="variable">pictureBox</span>;
+    <span class="keyword">this</span>.outPath = <span class="variable">outPath</span>;
+    <span class="function">InitializeContentManager</span>();
 }
 
-public void InitializeContentManager()
+<span class="keyword">public</span> <span class="keyword">void</span> <span class="function">InitializeContentManager</span>()
 {
-    var services = new GameServiceContainer();
-    var graphicsDeviceService = GraphicsDeviceService.AddRef(IntPtr.Zero, 800, 600);
-    services.AddService<IGraphicsDeviceService>(graphicsDeviceService);
+    <span class="keyword">var</span> <span class="variable">services</span> = <span class="keyword">new</span> <span class="type">GameServiceContainer</span>();
+    <span class="keyword">var</span> <span class="variable">graphicsDeviceService</span> = <span class="type">GraphicsDeviceService</span>.<span class="function">AddRef</span>(<span class="type">IntPtr</span>.Zero, <span class="class">800</span>, <span class="class">600</span>);
+    <span class="variable">services</span>.<span class="function">AddService</span><<span class="class">IGraphicsDeviceService</span>>(<span class="variable">graphicsDeviceService</span>);
 
-    this.graphicsDevice = graphicsDeviceService.GraphicsDevice;
-    string contentRootDirectory = Path.Combine(Application.StartupPath, "content");
-    if (!Directory.Exists(contentRootDirectory))
+    this.graphicsDevice = <span class="variable">graphicsDeviceService</span>.GraphicsDevice;
+    <span class="keyword">string</span> <span class="variable">contentRootDirectory</span> = <span class="type">Path</span>.<span class="function">Combine</span>(<span class="type">Application</span>.StartupPath, <span class="string">"content"</span>);
+    <span class="statement">if</span> (!<span class="type">Directory</span>.<span class="function">Exists</span>(<span class="variable">contentRootDirectory</span>))
     {
-        Directory.CreateDirectory(contentRootDirectory);
+        <span class="type">Directory</span>.<span class="function">CreateDirectory</span>(<span class="variable">contentRootDirectory</span>);
     }
-    contentManager = new ContentManager(services, contentRootDirectory);
-}
-</code></pre>
-            <p>The <code>InitializeContentManager</code> method sets up the <code>ContentManager</code> and <code>GraphicsDevice</code>, which are essential for handling XNA content.</p>
-
-            <h3>2. Loading XNB Files</h3>
-            <pre><code>public List&lt;XnbItem&gt; Load()
-{
-    List&lt;XnbItem&gt; items = new List&lt;XnbItem&gt;();
-
-    foreach (var file in files)
-    {
-        try
-        {
-            string relativePath = Path.GetRelativePath(ContentRootDirectory, file);
-            string itemName = Path.ChangeExtension(relativePath, null);
-            items.Add(new XnbItem { Name = itemName, Path = file });
-            Debug.LogMessage($"Added item: {itemName}");
-        }
-        catch (Exception ex)
-        {
-            Debug.LogException($"Error processing file '{file}': {ex.Message}");
-        }
-    }
-
-    OnCompleted?.Invoke();
-    return items;
+    contentManager = <span class="keyword">new</span> <span class="type">ContentManager</span>(<span class="variable">services</span>, <span class="variable">contentRootDirectory</span>);
 }
 </code></pre>
-            <p>The <code>Load</code> method processes the given file paths, adds them to a list of <code>XnbItem</code>, and handles potential exceptions during the loading process.</p>
+ <p>The <code>InitializeContentManager</code> method sets up the <code>ContentManager</code> and <code>GraphicsDevice</code>, which are essential for handling XNA content.</p>
 
-            <h3>3. Displaying Assets</h3>
-
-            <h4>Displaying Textures</h4>
-            <pre><code>public void DisplayImage(Texture2D texture)
+<h3>2. Loading XNB Files</h3>
+<pre><code><span class="keyword">public</span> <span class="type">List</span><<span class="type">XnbItem</span>> <span class="function">Load</span>()
 {
-    try
-    {
-        texture = ConvertToSupportedFormat(texture);
-        Microsoft.Xna.Framework.Color[] textureData = new Microsoft.Xna.Framework.Color[texture.Width * texture.Height];
-        texture.GetData(0, null, textureData, 0, texture.Width * texture.Height);
+    <span class="type">List</span><<span class="type">XnbItem</span>> <span class="variable">items</span> = <span class="keyword">new</span> <span class="type">List</span><<span class="type">XnbItem</span>>();
 
-        using (var stream = new MemoryStream())
+    <span class="statement">try</span>
+    {
+        <span class="statement">foreach</span> (<span class="keyword">var</span> <span class="variable">file</span> <span class="statement">in</span> files)
         {
-            texture.SaveAsPng(stream, texture.Width, texture.Height);
-            stream.Seek(0, SeekOrigin.Begin);
-            pictureBox.Image = System.Drawing.Image.FromStream(stream);
-        }
-    }
-    catch (Exception ex)
-    {
-        Debug.LogException(ex.Message);
-    }
-}
-</code></pre>
-            <p>The <code>DisplayImage</code> method converts the texture to a supported format and displays it in a <code>PictureBox</code>.</p>
-
-            <h4>Displaying Models</h4>
-            <pre><code>public void DisplaySkinnedModel(Model model, string modelName)
-{
-    if (graphicsDevice == null) return;
-
-    try
-    {
-        graphicsDevice.BlendState = BlendState.Opaque;
-        graphicsDevice.DepthStencilState = DepthStencilState.Default;
-
-        foreach (ModelMesh mesh in model.Meshes)
-        {
-            foreach (ModelMeshPart part in mesh.MeshParts)
+            <span class="statement">try</span>
             {
-                mesh.Draw();
+                <span class="keyword">string</span> <span class="variable">relativePath</span> = <span class="type">Path</span>.<span class="function">GetRelativePath</span>(ContentRootDirectory, <span class="variable">file</span>);
+
+                <span class="keyword">string</span> <span class="variable">itemName</span> = <span class="type">Path</span>.<span class="function">ChangeExtension</span>(<span class="variable">relativePath</span>, <span class="keyword">null</span>);
+
+                <span class="variable">items</span>.<span class="function">Add</span>(<span class="keyword">new</span> <span class="type">XnbItem</span> { Name = <span class="variable">itemName</span>, Path = <span class="variable">file</span> });
+
+                <span class="type">Debug</span>.<span class="function">LogMessage</span>(<span class="string">$"Added item:</span> {<span class="variable">itemName</span>}<span class="string">"</span>);
+            }
+            <span class="keyword">catch</span> (<span class="type">ArgumentException</span> <span class="variable">ex</span>)
+            {
+                <span class="type">Debug</span>.<span class="function">LogException</span>(<span class="string">$"ArgumentException while processing file '</span>{<span class="variable">file</span>}<span class="string">':</span> {<span class="variable">ex</span>.Message}</span><span class="string">"</span>);
+            }
+            <span class="keyword">catch</span> (<span class="type">Exception</span> <span class="variable">ex</span>)
+            {
+                <span class="type">Debug</span>.<span class="function">LogException</span>(<span class="string">$"Error processing file '</span>{<span class="variable">file</span>}<span class="string">':</span> {<span class="variable">ex</span>.Message}</span><span class="string">"</span>);
+            }
+        }
+
+        OnCompleted?.<span class="function">Invoke</span>();
+    }
+    <span class="statement">catch</span> (<span class="type">IOException</span> <span class="variable">ex</span>)
+    {
+        <span class="type">Debug</span>.<span class="function">LogException</span>(<span class="string">$"IOException during file loading:</span> {<span class="variable">ex</span>.Message}</span><span class="string">"</span>);
+    }
+    <span class="statement">catch</span> (<span class="type">UnauthorizedAccessException</span> <span class="variable">ex</span>)
+    {
+        <span class="statement">Debug</span>.<span class="function">LogException</span>(<span class="string">$"UnauthorizedAccessException during file loading:</span> {<span class="variable">ex</span>.Message}</span><span class="string">"</span>);
+    }
+    <span class="statement">catch</span> (<span class="type">Exception</span> <span class="variable">ex</span>)
+    {
+        <span class="type">Debug</span>.<span class="function">LogException</span>(<span class="string">$"Unexpected error during file loading:</span> {<span class="variable">ex</span>.Message}<span class="string">"</span>);
+    }
+
+    <span class="statement">return</span> <span class="variable">items</span>;
+}
+</code></pre>
+<p>The <code>Load</code> method processes the given file paths, adds them to a list of <code>XnbItem</code>, and handles potential exceptions during the loading process.</p>
+
+<h3>3. Displaying Assets</h3>
+
+<h4>Displaying Textures</h4>
+<pre><code><span class="keyword">public</span> <span class="keyword">void</span> <span class="function">DisplayImage</span>(<span class="type">Texture2D</span> <span class="variable">texture</span>)
+{
+    <span class="statement">try</span>
+    {
+        <span class="variable">texture</span> = <span class="function">ConvertToSupportedFormat</span>(<span class="variable">texture</span>);
+        Microsoft.Xna.Framework.<span class="class">Color</span>[] <span class="variable">textureData</span> = <span class="keyword">new</span> Microsoft.Xna.Framework.<span class="class">Color</span>[<span class="variable">texture</span>.Width * <span class="variable">texture</span>.Height];
+        <span class="variable">texture</span>.<span class="function">GetData</span>(0, <span class="keyword">null</span>, <span class="variable">textureData</span>, 0, <span class="variable">texture</span>.Width * <span class="variable">texture</span>.Height);
+
+        <span class="keyword">using</span> (<span class="keyword">var</span> <span class="variable">stream</span> = <span class="keyword">new</span> <span class="type">MemoryStream</span>())
+        {
+            <span class="variable">texture</span>.<span class="function">SaveAsPng</span>(<span class="variable">stream</span>, <span class="variable">texture</span>.Width, <span class="variable">texture</span>.Height);
+            <span class="variable">stream</span>.<span class="function">Seek</span>(0, <span class="class">SeekOrigin</span>.Begin);
+            pictureBox</span>.Image = System.Drawing<span class="type">.Image</span>.<span class="function">FromStream</span>(<span class="variable">stream</span>);
+        }
+    }
+    <span class="statement">catch</span> (<span class="type">Exception</span> <span class="variable">ex</span>)
+    {
+        <span class="type">Debug</span>.<span class="function">LogException</span>(<span class="variable">ex</span>.<span class="variable">Message</span>);
+    }
+}
+</code></pre>
+<p>The <code>DisplayImage</code> method converts the texture to a supported format and displays it in a <code>PictureBox</code>.</p>
+
+<h4>Displaying Models</h4>
+<pre><code><span class="keyword">public</span> <span class="keyword">void</span> <span class="function">DisplaySkinnedModel</span>(<span class="type">Model</span> <span class="variable">model</span>, <span class="keyword">string</span> <span class="variable">modelName</span>)
+{
+    <span class="statement">if</span> (graphicsDevice == <span class="keyword">null</span>)
+    {
+        <span class="statement">return</span>;
+    }
+    <span class="statement">try</span>
+    {
+        graphicsDevice.BlendState = <span class="type">BlendState</span>.Opaque;
+        graphicsDevice.DepthStencilState = <span class="type">DepthStencilState</span>.Default;
+
+        <span class="statement">foreach</span> (<span class="type">ModelMesh</span> <span class="variable">mesh</span> <span class="statement">in</span> <span class="variable">model</span>.Meshes)
+        {
+            <span class="statement">foreach</span> (<span class="type">ModelMeshPart</span> <span class="variable">part</span> <span class="statement">in</span> <span class="variable">mesh</span>.MeshParts)
+            {
+                SharpDX.Direct3D9.<span class="type">Effect</span> <span class="variable">effect</span> = <span class="keyword">null</span>;
+                <span class="variable">mesh</span>.<span class="function">Draw</span>();
             }
         }
     }
-    catch (Exception ex)
+    <span class="statement">catch</span> (<span class="type">Exception</span> <span class="variable">ex</span>)
     {
-        Debug.LogException($"Failed to display skinned model '{modelName}': {ex.Message}");
+        <span class="type">Debug</span>.<span class="function">LogException</span>(<span class="string">"Failed to display skinned model '"</span> + <span class="variable">modelName</span> + <span class="string">"': "</span> + <span class="variable">ex</span>.<span class="variable">Message</span>);
     }
 }
 </code></pre>
-            <p>The <code>DisplaySkinnedModel</code> method is used to render and display a 3D model.</p>
+<p>The <code>DisplaySkinnedModel</code> method is used to render and display a 3D model.</p>
 
-            <h4>Displaying Fonts</h4>
-            <pre><code>public void DisplayFontAtlas(SpriteFont font, string fileName)
+<h4>Displaying Fonts</h4>
+<pre><code><span class="keyword">public</span> <span class="keyword">void</span> <span class="function">DisplayFontAtlas</span>(<span class="type">SpriteFont</span> <span class="variable">font</span>, <span class="keyword">string</span> <span class="variable">fileName</span>)
 {
-    using (var stream = new MemoryStream())
+    <span class="keyword">using</span> (<span class="keyword">var</span> <span class="variable">stream</span> = <span class="keyword">new</span> <span class="type">MemoryStream</span>())
     {
-        font.Texture.SaveAsPng(stream, font.Texture.Width, font.Texture.Height);
-        stream.Seek(0, SeekOrigin.Begin);
-        pictureBox.Image = System.Drawing.Image.FromStream(stream);
+        <span class="variable">font</span>.Texture.<span class="function">SaveAsPng</span>(<span class="variable">stream</span>, <span class="variable">font</span>.Texture.Width, <span class="variable">font</span>.Texture.Height);
+        <span class="variable">stream</span>.<span class="function">Seek</span>(0, <span class="class">SeekOrigin</span>.<span class="variable">Begin</span>);
+        pictureBox</span>.Image = System.Drawing.<span class="type">Image</span>.<span class="function">FromStream</span>(<span class="variable">stream</span>);
     }
 }
 </code></pre>
-            <p>The <code>DisplayFontAtlas</code> method displays the texture atlas for a <code>SpriteFont</code>.</p>
+<p>The <code>ApplyAnimation</code> method applies animation transforms to the currently loaded model.</p>
 
-            <h3>4. Handling Animations</h3>
-            <pre><code>public void ApplyAnimation(AnimationClip animation)
+<h3>5. Converting Texture Formats</h3>
+<pre><code><span class="keyword">public</span> <span class="keyword">Texture2D</span> <span class="function">ConvertToSupportedFormat</span>(<span class="type">Texture2D</span> <span class="variable">texture</span>)
 {
-    if (CurrentModel == null || animation == null || animation.FrameCount == 0) return;
-
-    for (int i = 0; i &lt; CurrentModel.Bones.Count; i++)
+    <span class="statement">if</span> (<span class="function">IsDXTFormat</span>(<span class="variable">texture</span>.Format))
     {
-        Matrix transform = animation.GetTransform(i, CurrentFrame);
-        CurrentModel.Bones[i].Transform = transform;
+        <span class="keyword">var</span> <span class="variable">data</span> = <span class="function">DecompressDXT</span>(<span class="variable">texture</span>);
+        <span class="keyword">var</span> <span class="variable">convertedTexture</span> = <span class="keyword">new</span> <span class="type">Texture2D</span>(<span class="variable">texture</span>.GraphicsDevice, <span class="variable">texture</span>.Width, <span class="variable">texture</span>.Height, <span class="keyword">false</span>, <span class="class">SurfaceFormat</span>.Color);
+        <span class="variable">convertedTexture</span>.<span class="function">SetData</span>(<span class="variable">data</span>);
+        <span class="statement">return</span> <span class="variable">convertedTexture</span>;
     }
 
-    CurrentFrame = (CurrentFrame + 1) % animation.FrameCount;
+    <span class="statement">return</span> <span class="variable">texture</span>;
 }
 </code></pre>
-            <p>The <code>ApplyAnimation</code> method applies animation transforms to the currently loaded model.</p>
-
-            <h3>5. Converting Texture Formats</h3>
-            <pre><code>public Texture2D ConvertToSupportedFormat(Texture2D texture)
-{
-    if (texture.Format == SurfaceFormat.Dxt1 || texture.Format == SurfaceFormat.Dxt3 || texture.Format == SurfaceFormat.Dxt5)
-    {
-        var data = new Microsoft.Xna.Framework.Color[texture.Width * texture.Height];
-        texture.GetData(data);
-        var convertedTexture = new Texture2D(texture.GraphicsDevice, texture.Width, texture.Height, false, SurfaceFormat.Color);
-        convertedTexture.SetData(data);
-        return convertedTexture;
-    }
-
-    return texture;
-}
-</code></pre>
-            <p>The <code>ConvertToSupportedFormat</code> method ensures that textures are converted to a supported format if they are in a compressed format like DXT.</p>
+ <p>The <code>ConvertToSupportedFormat</code> method ensures that textures are converted to a supported format if they are in a compressed format like DXT.</p>
 
             <h2>Conclusion</h2>
             <p>The custom XNB exporter provides a robust solution for managing and exporting XNA assets. With functionalities for loading, displaying, and converting various asset types, it streamlines the process of handling game content. Whether you’re working with textures, models, or animations, this exporter can be a valuable tool in your game development toolkit.</p>
