@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7-Zip Plugin Blog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>7-Zip Plugin Blog</h1>
+    </header>
+	<nav>
+		<a href="../index.html">Home</a>
+        <a href="Xnb.html">XNB Exporter Blog</a>
+		<a href="DieShell.html">DieShell Blog</a>
+		</nav>
+    <main>
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>This document serves as a guide to the <strong>7-Zip Plugin</strong> for managing archives. It includes descriptions of the plugin's purpose, installation instructions, usage examples, and details about the available functions and classes.</p>
+        </section>
+        <section id="introduction">
+            <h2>1. Introduction</h2>
+            <p>The <strong>7-Zip Plugin</strong> is designed to enable the compression and extraction of files in a specified format using the 7-Zip file archiver. This plugin extends 7-Zip's functionality to support additional file formats or features.</p>
+        </section>
+        <section id="installation">
+            <h2>2. Installation</h2>
+            <p>To install the 7-Zip Plugin:</p>
+            <ol>
+                <li>Download the plugin files.</li>
+                <li>Copy the plugin <code>.dll</code> file to the <code>7-Zip\Plugins</code> directory.</li>
+                <li>Restart 7-Zip to load the new plugin.</li>
+            </ol>
+        </section>
+        <section id="usage">
+            <h2>3. Usage</h2>
+            <p>To use the plugin:</p>
+            <ul>
+                <li><strong>Adding Files</strong>: Right-click on a file or folder in Windows Explorer, choose "Add to archive," and select the plugin format.</li>
+                <li><strong>Extracting Files</strong>: Open an archive with 7-Zip, and the plugin will be used automatically if the archive format is supported.</li>
+            </ul>
+        </section>
+        <section id="plugin-structure">
+            <h2>4. Plugin Structure</h2>
+            <p>The plugin is structured into several components:</p>
+            <ul>
+                <li><strong>Classes</strong>: Core classes implementing the interface for handling archives.</li>
+                <li><strong>Methods</strong>: Functions for performing specific actions like opening, closing, extracting, and retrieving properties of the archive.</li>
+                <li><strong>Error Handling</strong>: Consistent handling of errors and return codes for robustness.</li>
+            </ul>
+        </section>
+        <section id="classes-and-methods">
+            <h2>5. Classes and Methods</h2>
+            <h3>CHandler</h3>
+            <ul>
+                <li><strong>Description</strong>: Main handler class for managing archive operations.</li>
+                <li><strong>Methods</strong>:</li>
+                <ul>
+                    <li><strong>Open</strong>: Opens the archive for reading.</li>
+                    <pre><code class="type">HRESULT</code> <code class="function">Open</code>(<code class="type">IInStream</code>* stream, <code class="type">const UInt64</code>* offset, <code class="type">IArchiveOpenCallback</code>* callback)</code></pre>
+                    <li><strong>Extract</strong>: Extracts files from the archive.</li>
+                    <pre><code class="type">HRESULT</code> <code class="function">Extract</code>(<code class="type">const UInt32</code>* indices, <code class="type">UInt32</code> numItems, <code class="type">Int32</code> testMode, <code class="type">IArchiveExtractCallback</code>* extractCallback)</code></pre>
+                    <li><strong>GetStream</strong>: Retrieves a specific stream for an item in the archive.</li>
+                    <pre><code class="type">HRESULT</code> <code class="function">GetStream</code>(<code class="type">UInt32</code> index, <code class="type">ISequentialInStream</code>** stream)</code></pre>
+                </ul>
+            </ul>
+        </section>
+        <h3>CMyComPtr</h3>
+        <ul>
+            <li><strong>Description</strong>: A smart pointer class for managing COM object lifetimes.</li>
+        </ul>
+        <h3>NCOM::CPropVariant</h3>
+        <ul>
+            <li><strong>Description</strong>: A class for handling property variants used in the 7-Zip interface.</li>
+        </ul>
+        <section id="error-handling">
+            <h2>6. Error Handling</h2>
+            <p>The plugin uses HRESULT codes to indicate success or failure of operations:</p>
+            <ul>
+			   <li> Operation succed.</li>
+               <pre><code class="statement">S_OK</code></pre>
+			   <li> General failure</li>
+               <pre><code class="statement">E_FAIL</code></pre>
+			   <li> Null pointer passed as argument.</li>
+               <pre><code class="statement">E_POINTER</code></pre>
+			   <li>Operation not performed or condition not met.</li>
+               <pre><code class="statement">S_FALSE</code>
+            </ul>
+        </section>
+        <section id="contributing">
+            <h2>7. Contributing</h2>
+            <p>Contributions are welcome! Please follow these steps to contribute:</p>
+            <ol>
+                <li>Fork the repository.</li>
+                <li>Create a new branch for your feature or bugfix.</li>
+                <li>Write tests for your changes.</li>
+                <li>Submit a pull request.</li>
+            </ol>
+        </section>
+        <section id="license">
+            <h2>8. License</h2>
+            <p>This project is licensed under the MIT License. See the LICENSE file for details.</p>
+        </section>
+        <section id="acknowledgements">
+            <h2>9. Acknowledgements</h2>
+            <p>Thanks to the 7-Zip community for their support and resources.</p>
+            <p>Special thanks to developers who contributed to the codebase.</p>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 7-Zip Plugin Documentation</p>
+    </footer>
+</body>
+</html>
